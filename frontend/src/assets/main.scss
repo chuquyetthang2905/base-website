@@ -1,0 +1,37 @@
+// ─── CSS Custom Properties ────────────────────────────────────────────────────
+:root {
+  --primary:        #6366f1;
+  --primary-dark:   #4f46e5;
+  --primary-light:  #e0e7ff;
+  --sidebar-bg:     #1e1b4b;
+  --bg:             #f1f5f9;
+  --surface:        #ffffff;
+  --text:           #1e293b;
+  --text-muted:     #64748b;
+  --border:         #e2e8f0;
+  --success:        #10b981;
+  --warning:        #f59e0b;
+  --danger:         #ef4444;
+  --info:           #3b82f6;
+  --sidebar-width:  260px;
+}
+
+// ─── Bootstrap overrides (must be before import) ──────────────────────────────
+$primary:                #6366f1;
+$font-family-sans-serif: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+
+// ─── Bootstrap 5 ──────────────────────────────────────────────────────────────
+@import 'bootstrap/scss/bootstrap';
+
+// ─── Bootstrap Icons ──────────────────────────────────────────────────────────
+@import 'bootstrap-icons/font/bootstrap-icons';
+
+// ─── Global base ──────────────────────────────────────────────────────────────
+body {
+  background-color: var(--bg);
+  color: var(--text);
+}
+
+* {
+  box-sizing: border-box;
+}
