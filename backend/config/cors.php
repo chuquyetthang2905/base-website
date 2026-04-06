@@ -21,7 +21,7 @@ return [
     'allowed_methods' => ['*'],
 
     // Restrict to the frontend origin. Never use '*' when supports_credentials is true.
-    'allowed_origins' => [env('FRONTEND_URL', 'http://localhost:5173')],
+    'allowed_origins' => [env('FRONTEND_URL', 'http://localhost:8080')],
 
     'allowed_origins_patterns' => [],
 

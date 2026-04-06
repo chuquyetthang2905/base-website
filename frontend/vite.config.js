@@ -16,7 +16,7 @@ export default defineConfig({
   },
 
   server: {
-    port: 5173,
+    port: 8080,
     // Proxy /api/* requests to Laravel backend during development.
     // This avoids CORS issues locally and matches the production setup
     // where a reverse proxy (nginx) routes /api to the backend.

@@ -88,9 +88,13 @@ export const useAuthStore = defineStore('auth', () => {
       user.value = data.data.user
       _registerStoreRef()
       return true
-    } catch {
-      // Refresh failed — treat as unauthenticated (cookie expired/revoked)
-      _clearState()
+    } catch (error) {
+      // Only clear state on auth failures (401/403 = token expired/revoked)
+      // Preserve state on network errors — user may still be authenticated
+      const status = error?.response?.status
+      if (!status || status === 401 || status === 403) {
+        _clearState()
+      }
       return false
     } finally {
       loading.value = false
@@ -143,6 +147,10 @@ export const useAuthStore = defineStore('auth', () => {
   function _clearState() {
     accessToken.value = null
     user.value = null
+    // Clean up global store reference so interceptor won't attach stale tokens
+    if (window.__piniaStores__) {
+      delete window.__piniaStores__.useAuthStore
+    }
   }
 
   /**
