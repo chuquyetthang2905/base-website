@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 
@@ -29,6 +29,33 @@ function validate() {
   clientErrors.value = errs
   return Object.keys(errs).length === 0
 }
+
+// ─── Google Login ────────────────────────────────────────────────────────────
+onMounted(() => {
+  const script = document.createElement('script')
+  script.src = 'https://accounts.google.com/gsi/client'
+  script.async = true
+  script.defer = true
+  script.onload = () => {
+    window.google.accounts.id.initialize({
+      client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
+      callback: async (response) => {
+        try {
+          await auth.loginWithGoogle(response.credential)
+          const redirectTo = route.query.redirect || '/dashboard'
+          router.push(redirectTo)
+        } catch (err) {
+          generalError.value = err.response?.data?.message ?? 'Google login failed.'
+        }
+      },
+    })
+    window.google.accounts.id.renderButton(
+      document.getElementById('google-signin-btn'),
+      { theme: 'outline', size: 'large', width: '100%', text: 'signin_with' }
+    )
+  }
+  document.head.appendChild(script)
+})
 
 // ─── Submit ──────────────────────────────────────────────────────────────────
 async function submit() {
@@ -128,6 +155,11 @@ async function submit() {
           </button>
 
         </form>
+
+        <hr class="m">
+
+          <!-- Login with Google — rendered by Google Identity Services -->
+          <div id="google-signin-btn" class="d-flex justify-content-center"></div>
 
         <!-- Footer link -->
         <p class="text-center mt-4 mb-0 text-muted small">

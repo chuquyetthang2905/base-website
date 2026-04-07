@@ -17,6 +17,9 @@ export default defineConfig({
 
   server: {
     port: 8080,
+    headers: {
+      'Cross-Origin-Opener-Policy': 'same-origin-allow-popups',
+    },
     // Proxy /api/* requests to Laravel backend during development.
     // This avoids CORS issues locally and matches the production setup
     // where a reverse proxy (nginx) routes /api to the backend.

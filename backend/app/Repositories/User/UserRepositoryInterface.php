@@ -55,4 +55,11 @@ interface UserRepositoryInterface
      * Used in RegisterRequest validation for a clean, readable rule.
      */
     public function existsByEmail(string $email): bool;
+
+    /**
+    * Find a user by their Google ID (from Google OAuth).
+    * Returns null if not found.
+    */
+    public function findByGoogleId(string $googleId): ?User;
+
 }

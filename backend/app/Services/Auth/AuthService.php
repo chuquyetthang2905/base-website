@@ -13,6 +13,8 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use PHPOpenSourceSaver\JWTAuth\Facades\JWTAuth;
+use GuzzleHttp\Client;
+use Illuminate\Support\Facades\Config;
 
 class AuthService
 {
@@ -275,5 +277,58 @@ class AuthService
         RefreshToken::where('family_id', $familyId)
             ->whereNull('revoked_at')
             ->update(['revoked_at' => now()]);
+    }
+
+    public function loginWithGoogle(string $credential): array
+    {
+        $client = new Client();
+
+        $response = $client->get('https://oauth2.googleapis.com/tokeninfo', [
+            'query' => ['id_token' => $credential],
+        ]);
+
+        $data = json_decode($response->getBody(), true);
+
+        // Check that the token is valid and intended for our app by verifying the 'aud' claim
+        $googleClientId = Config::get('services.google.client_id');
+        if (!isset($data['aud']) || $data['aud'] !== $googleClientId) {
+            throw new \Exception('Invalid Google token', 401);
+        }
+
+        // Extract relevant user info from the token payload
+        $googleId = $data['sub'] ?? null;
+        $email = $data['email'] ?? null;
+        $name = $data['name'] ?? null;
+
+        if (!$googleId || !$email) {
+            throw new \Exception('Could not retrieve user info from Google', 401);
+        }
+
+        // Find or create a local user linked to this Google ID
+        $user = $this->userRepository->findByGoogleId($googleId);
+
+        // Doesn't exist yet — create a new user record with the Google info
+        if (!$user) {
+            $user = $this->userRepository->create([
+                'name' => $name ?? $email,
+                'email' => $email,
+                'google_id' => $googleId,
+                'is_active' => true,
+                'password' => null,
+            ]);
+        }
+
+        if (! $user->isActive()) {
+            throw new \Exception('Your account has been deactivated', 403);
+        }
+
+        $accessToken = JWTAuth::fromUser($user);
+        $rawRefreshToken = $this->createRefreshToken($user, familyId: Str::uuid()->toString());
+
+        return [
+            'access_token'  => $accessToken,
+            'refresh_token' => $rawRefreshToken,
+            'user'          => $this->userRepository->findWithRoles($user->id),
+        ];
     }
 }

@@ -53,4 +53,9 @@ class UserRepository implements UserRepositoryInterface
     {
         return User::where('email', $email)->exists();
     }
+
+    public function findByGoogleId(string $googleId): ?User
+    {
+        return User::where('google_id', $googleId)->first();
+    }
 }

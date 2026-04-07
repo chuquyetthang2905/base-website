@@ -203,4 +203,45 @@ class AuthController extends Controller
             sameSite: 'Strict',
         );
     }
+
+    /**
+     * Handles Google OAuth login.
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function googleLogin(Request $request): JsonResponse
+    {
+        $credential = $request->input('credential');
+        if (!$credential) {
+            return $this->error('Missing credential', 422);
+        }
+
+        try {
+            $result = $this->authService->loginWithGoogle($credential);
+
+            $response = $this->success(
+                [
+                    'access_token' => $result['access_token'],
+                    'token_type'   => 'Bearer',
+                    'user'         => new UserResource($result['user']),
+                ],
+                'Login successful'
+            );
+
+            return $response->withCookie(
+                cookie(
+                    name:     'refresh_token',
+                    value:    $result['refresh_token'],
+                    minutes:  60 * 24 * config('app.refresh_token_ttl_days', 30),
+                    path:     '/api/v1/auth',
+                    secure:   app()->isProduction(),
+                    httpOnly: true,
+                    sameSite: 'Strict',
+                )
+            );
+        } catch (\Exception $e) {
+            return $this->error($e->getMessage(), $e->getCode() ?: 500);
+        }
+    }
 }

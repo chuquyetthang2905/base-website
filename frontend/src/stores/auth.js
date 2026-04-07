@@ -76,6 +76,20 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  async function loginWithGoogle(credential) {
+    loading.value = true
+    try {
+      const { data } = await api.post('/auth/google', { credential })
+      accessToken.value = data.data.access_token
+      user.value = data.data.user
+      initialized.value = true
+      _registerStoreRef()
+      return data
+    } finally {
+      loading.value = false
+    }
+  }
+
   /**
    * Silent refresh: Get a new access token using the HttpOnly cookie.
    * Called on app boot (if cookie exists) and by Axios interceptor on 401.
@@ -177,6 +191,7 @@ export const useAuthStore = defineStore('auth', () => {
     hasAnyRole,
     register,
     login,
+    loginWithGoogle,
     refresh,
     logout,
     fetchMe,
